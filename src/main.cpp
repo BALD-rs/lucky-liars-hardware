@@ -198,6 +198,10 @@ void checkButton() {
 }
 
 void readGameDataFromSerial() {
+  while (Serial.available() < 3) {
+    asm volatile("nop");
+  }
+
   while (Serial.available() > 0) {
     uint8_t readByte = Serial.read();
     char buffer[2];
