@@ -14,8 +14,10 @@
 
 #include <TFT_eSPI.h> // Hardware specific library. Use Setup61 in User_Setup_Select.h
 #include <SPI.h>
+#include "nixie.h"
 
 TFT_eSPI tft = TFT_eSPI();
+Nixie tube1 = Nixie(0, 2, 3, 1);
 
 // Our specific screen is 320x240.
 uint16_t screen[320][240];
@@ -56,19 +58,16 @@ void setup(void) {
   tft.fillScreen(WHITE);
   tft.setTextColor(WHITE, BLACK);
   sineWave();
-
-  pinMode(0, OUTPUT); //a
-  pinMode(2, OUTPUT); //b
-  pinMode(3, OUTPUT); //c
-  pinMode(1, OUTPUT); //d
-  digitalWrite(0, HIGH);
-  digitalWrite(2, LOW);
-  digitalWrite(3, LOW);
-  digitalWrite(1, LOW);
+  
+  
 }
 
 void loop() {
   // toggleHigh();
+  for (int i = 0; i < 10; i++) {
+    tube1.setTube(i);
+    delay(50);
+  }
 }
 
 void initArray() {
