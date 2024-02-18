@@ -15,7 +15,6 @@
 #define BUTTON 4
 
 int needle = 0;
-int change = 1;
 
 #include <TFT_eSPI.h> // Hardware specific library. Use Setup61 in User_Setup_Select.h
 #include <SPI.h>
@@ -54,10 +53,10 @@ void rotLeft();
 void shiftLeft();
 
 /**
- * Generates the line for the polygraph. Input number gives height of spike, IE lie. 2 works
- * for baseline, 20 or above for lie.
+ * Generates the line for the polygraph. Input number is confidence. Higher values mean 
+ * more likely to lie
 */
-void polyGraph(uint8_t change);
+void polyGraph(uint8_t confidence);
 
 /**
  * Checks if button pressed
@@ -85,17 +84,9 @@ void setup(void) {
 }
 
 void loop() {
-  // std::uniform_int_distribution<> prob(0, 750);
-  
-  // if (prob(eng) == 0) {
-  //   polyGraph(30);
-  // } else {
-  //   polyGraph(1);
-  // }
-
   checkButton();
   readGameDataFromSerial();
-  polyGraph(change);
+  readGameDataFromSerial();
 }
 
 void initArray() {
@@ -170,29 +161,46 @@ void shiftLeft() {
   }
 }
 
-void polyGraph(uint8_t change) {
-  std::uniform_int_distribution<> distr(-change, change); // Define the range for delta change
-  std::uniform_int_distribution<> prob(0, 99);
+void polyGraph(uint8_t confidence) {
+  uint8_t change;
 
-  int delta = distr(eng); // Generate a small change to simulate wave
-
-  if ((needle > 4 && delta > 0) || (needle < -4 && delta < 0)) {
-      if (prob(eng) < 75) { // 75% chance to nudge towards center when further away
-          delta = -delta;
-      }
+  std::uniform_int_distribution<> prob(0, 250);
+  
+  if (confidence >= 20) {
+    std::uniform_int_distribution<> prob(0, 200);
   }
 
-  needle += delta; // Adjust needle position
+  
+  while(Serial.read() != 'S') {
+    if (prob(eng) == 0) {
+      change = confidence;
+    } else {
+      change = 1;
+    }
 
-  if (needle < -120) needle = -119;
-  if (needle > 119) needle = 118;
+    std::uniform_int_distribution<> distr(-change, change); // Define the range for delta change
+    std::uniform_int_distribution<> prob(0, 99);
 
-  tft.drawPixel(tft.width() - 1, needle + 120, BLACK);
-  tft.drawPixel(tft.width() - 1, needle + 119, BLACK);
-  screen[tft.width() - 1][needle + 120] = BLACK;
-  screen[tft.width() - 1][needle + 119] = BLACK;
-  shiftLeft();
-  needle += delta * 2;
+    int delta = distr(eng); // Generate a small change to simulate wave
+
+    if ((needle > 4 && delta > 0) || (needle < -4 && delta < 0)) {
+        if (prob(eng) < 75) { // 75% chance to nudge towards center when further away
+            delta = -delta / 2;
+        }
+    }
+
+    needle += delta * 1.5; // Adjust needle position
+
+    if (needle < -120) needle = -119;
+    if (needle > 119) needle = 118;
+
+    tft.drawPixel(tft.width() - 1, needle + 120, BLACK);
+    tft.drawPixel(tft.width() - 1, needle + 119, BLACK);
+    screen[tft.width() - 1][needle + 120] = BLACK;
+    screen[tft.width() - 1][needle + 119] = BLACK;
+    shiftLeft();
+    needle += delta * 3;
+  }
 }
 
 void checkButton() {
@@ -216,8 +224,7 @@ void readGameDataFromSerial() {
     if(readByte == 'D') {
       rollDie(buffer[0] - 0x30, buffer[1] - 0x30);
     } else if (readByte == 'P') {
-      change = ((buffer[0] - 0x30) * 10) + (buffer[1] - 0x30);
-      Serial.println(change);
+      polyGraph(((buffer[0] - 0x30) * 10) + (buffer[1] - 0x30));
     }
   }
 }
