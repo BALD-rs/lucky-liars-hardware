@@ -11,16 +11,24 @@
 #define BLACK 0x0000
 #define WHITE 0xFFFF
 #define GREY  0x5AEB
+#define BUTTON 4
+
+int needle = 0;
+int change = 1;
 
 #include <TFT_eSPI.h> // Hardware specific library. Use Setup61 in User_Setup_Select.h
 #include <SPI.h>
 #include "nixie.h"
+#include <iostream>
+#include <random>
+#include <chrono>
+#include <thread>
 
 TFT_eSPI tft = TFT_eSPI();
 Nixie tube1 = Nixie(0, 2, 3, 1);
-
-// Our specific screen is 320x240.
+Nixie tube2 = Nixie(7, 13, 14, 12);
 uint16_t screen[320][240];
+std::mt19937 eng(random()); // Seed the generator
 
 /**
  * Initializes each cell in the array to 0xFFFF. Keeping track of the array in memory 
@@ -29,9 +37,9 @@ uint16_t screen[320][240];
 void initArray();
 
 /**
- * Writes a simple sine wave across the width of the screen
+ * Initialize buttons
 */
-void sineWave();
+void initButton();
 
 /**
  * Shifts every pixel in the screen left, rotating the first column into the last position
@@ -45,29 +53,42 @@ void rotLeft();
 void shiftLeft();
 
 /**
- * Used to test serial input and rotation on the display. Toggles the position of the "cursor"
- * based on the current mode
+ * Generates the line for the polygraph. Input number gives height of spike, IE lie. 2 works
+ * for baseline, 20 or above for lie.
 */
-void toggleHigh();
+void polyGraph(uint8_t change);
+
+/**
+ * Checks if button pressed
+*/
+void checkButton();
+
+/**
+ * Intercepts serial data for interfacing with game
+*/
+void readGameDataFromSerial();
 
 void setup(void) {
   Serial.begin(9600);
   tft.init();
-  tft.setRotation(3);
+  tft.setRotation(1);
+  initButton();
   initArray();
   tft.fillScreen(WHITE);
-  tft.setTextColor(WHITE, BLACK);
-  sineWave();
-  
-  
 }
 
 void loop() {
-  // toggleHigh();
-  for (int i = 0; i < 10; i++) {
-    tube1.setTube(i);
-    delay(50);
-  }
+  // std::uniform_int_distribution<> prob(0, 750);
+  
+  // if (prob(eng) == 0) {
+  //   polyGraph(30);
+  // } else {
+  //   polyGraph(1);
+  // }
+
+  checkButton();
+  readGameDataFromSerial();
+  polyGraph(change);
 }
 
 void initArray() {
@@ -78,14 +99,8 @@ void initArray() {
     }
 }
 
-void sineWave() {
-  int x = 0;
-  int y = 0;
-  for (x = 0; x < tft.width(); x += 1) {
-    y = round(50 * sin(( ((double) x) / tft.width()) * 2 * PI)) + 120;
-    tft.drawPixel(x, 240 - y, BLACK);
-    screen[x][240 - y] = BLACK;
-  } 
+void initButton() {
+  pinMode(BUTTON, INPUT_PULLUP);
 }
 
 void rotLeft() {
@@ -148,25 +163,51 @@ void shiftLeft() {
   }
 }
 
-void toggleHigh() {
-  uint8_t mode = -1; // -1 for low, 1 for high
+void polyGraph(uint8_t change) {
+  std::uniform_int_distribution<> distr(-change, change); // Define the range for delta change
+  std::uniform_int_distribution<> prob(0, 99);
 
-  while(true) {
-    uint8_t input = Serial.read();
+  int delta = distr(eng); // Generate a small change to simulate wave
 
-    // if 1 is pressed, toggle
-    if (input == 0x31) {
-      mode *= -1;
+  if ((needle > 4 && delta > 0) || (needle < -4 && delta < 0)) {
+      if (prob(eng) < 75) { // 75% chance to nudge towards center when further away
+          delta = -delta;
+      }
+  }
+
+  needle += delta; // Adjust needle position
+
+  if (needle < -120) needle = -119;
+  if (needle > 119) needle = 118;
+
+  tft.drawPixel(tft.width() - 1, needle + 120, BLACK);
+  tft.drawPixel(tft.width() - 1, needle + 119, BLACK);
+  screen[tft.width() - 1][needle + 120] = BLACK;
+  screen[tft.width() - 1][needle + 119] = BLACK;
+  shiftLeft();
+  needle += delta * 2;
+}
+
+void checkButton() {
+  while (digitalRead(BUTTON) == HIGH);
+  Serial.println("1");
+  delay(20);
+  while (digitalRead(BUTTON) == LOW);
+  Serial.println("0");
+  delay(20);
+}
+
+void readGameDataFromSerial() {
+  while (Serial.available() > 0) {
+    uint8_t readByte = Serial.read();
+    char buffer[2];
+    Serial.readBytes(buffer, 2);
+    if(readByte == 'D') {
+      tube1.setTube(buffer[0] - 0x30);
+      tube2.setTube(buffer[1] - 0x30);
+    } else if (readByte == 'P') {
+      change = ((buffer[0] - 0x30) * 10) + (buffer[1] - 0x30);
+      Serial.println(change);
     }
-
-    if (mode == 1) {
-      tft.drawPixel(tft.width() - 1, tft.height() / 2 - 20, BLACK);
-      screen[tft.width() - 1][tft.height() / 2 - 20] = BLACK;
-    } else {
-      tft.drawPixel(tft.width() - 1, tft.height() / 2, BLACK);
-      screen[tft.width() - 1][tft.height() / 2] = BLACK;
-    }
-
-    shiftLeft();
   }
 }

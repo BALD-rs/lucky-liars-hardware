@@ -14,8 +14,10 @@ Nixie::Nixie(uint8_t pinA, uint8_t pinB, uint8_t pinC, uint8_t pinD) {
 }
 
 void Nixie::setTube(uint8_t num) {
-    if (num > 9) {
-        num = 0;
+    // if above 9, the displays turn off. Quick and dirty, but it works. Limit to 15
+    // as we are limited to 4 bits. 
+    if (num > 15) {
+        num = 15;
     }
 
     uint8_t binaryRep[4];
