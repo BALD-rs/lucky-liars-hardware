@@ -210,13 +210,13 @@ void polyGraph(uint8_t confidence) {
 void checkButton() {
   while (digitalRead(BUTTON) == HIGH) {
     Serial.println("A");
-    delay(100);
+    delay(200);
   }
   Serial.println("1");
   delay(20);
   while (digitalRead(BUTTON) == LOW) {
     Serial.println("B");
-    delay(100);
+    delay(200);
   }
   Serial.println("0");
   delay(20);
