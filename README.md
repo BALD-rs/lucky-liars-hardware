@@ -1,21 +1,16 @@
-How to build PlatformIO based project
+Cornhacks 2024 - Hardware interface
 =====================================
 
-1. [Install PlatformIO Core](https://docs.platformio.org/page/core.html)
-2. Download [development platform with examples](https://github.com/platformio/platform-raspberrypi/archive/develop.zip)
-3. Extract ZIP archive
-4. Run these commands:
+## Introduction
+This program was written to interface between our game and the custom peripheral designed for it. The peripheral
+is built on the Raspberry Pi Pico and serves two main functions - to display the result of a D20 roll, and
+to output a polygraph-style image used to enhance the game. This code was mainly written by Dawson McGahan, with 
+crucial assistance from Blaine Traudt.
 
-```shell
-# Change directory to example
-$ cd platform-raspberrypi/examples/arduino-blink
+The polygraph-style image is displayed on a 2.8" TFT display that can be driven with the TFT_eSPI library. The D20
+roll is displayed on two IN-14 nixie tubes. The pico controls these tubes using the K155IN1 BCD/Decimal driver.
 
-# Build project
-$ pio run
-
-# Upload firmware
-$ pio run --target upload
-
-# Clean build files
-$ pio run --target clean
-```
+## The Game
+The peripheral is required to enable TTS, making the game more realistic, as if the user was pressing an intercom button.
+After the user releases the button, a D20 is rolled and the result is displayed using the nixie tubes with a special
+animation. This value is similar to a "perception check," and the result impacts the quality of the polygraph shown. A higher number rolled means a clearer, higher quality polygraph is shown on the display, and can be used to determine the true killer.

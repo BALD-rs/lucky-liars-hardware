@@ -86,6 +86,7 @@ void setup(void) {
 void loop() {
   checkButton();
   readGameDataFromSerial();
+  delay(500);
   readGameDataFromSerial();
 }
 
@@ -201,13 +202,22 @@ void polyGraph(uint8_t confidence) {
     shiftLeft();
     needle += delta * 3;
   }
+
+  tube1.setTube(10);
+  tube2.setTube(10);
 }
 
 void checkButton() {
-  while (digitalRead(BUTTON) == HIGH);
+  while (digitalRead(BUTTON) == HIGH) {
+    Serial.println("A");
+    delay(100);
+  }
   Serial.println("1");
   delay(20);
-  while (digitalRead(BUTTON) == LOW);
+  while (digitalRead(BUTTON) == LOW) {
+    Serial.println("B");
+    delay(100);
+  }
   Serial.println("0");
   delay(20);
 }
