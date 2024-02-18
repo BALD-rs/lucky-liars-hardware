@@ -11,6 +11,11 @@ Nixie::Nixie(uint8_t pinA, uint8_t pinB, uint8_t pinC, uint8_t pinD) {
     pinMode(pinB, OUTPUT);
     pinMode(pinC, OUTPUT);
     pinMode(pinD, OUTPUT);
+
+    digitalWrite(pinA, LOW);
+    digitalWrite(pinB, HIGH);
+    digitalWrite(pinC, LOW);
+    digitalWrite(pinD, HIGH);
 }
 
 void Nixie::setTube(uint8_t num) {

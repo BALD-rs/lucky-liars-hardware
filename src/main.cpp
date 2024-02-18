@@ -4,6 +4,7 @@
  * Cornhacks, February 17th, 2024.
  * 
  * Dawson McGahan
+ * Blaine Traudt
  * 
  * File for interfacing with the peripherals of 'Project Escobar'
 */
@@ -67,6 +68,12 @@ void checkButton();
  * Intercepts serial data for interfacing with game
 */
 void readGameDataFromSerial();
+
+/**
+ * Displays a goofy neat little animation that simulates rolling a die
+ * Ends on the desired value;
+*/
+void rollDie(uint8_t d1, uint8_t d2);
 
 void setup(void) {
   Serial.begin(9600);
@@ -207,11 +214,43 @@ void readGameDataFromSerial() {
     char buffer[2];
     Serial.readBytes(buffer, 2);
     if(readByte == 'D') {
-      tube1.setTube(buffer[0] - 0x30);
-      tube2.setTube(buffer[1] - 0x30);
+      rollDie(buffer[0] - 0x30, buffer[1] - 0x30);
     } else if (readByte == 'P') {
       change = ((buffer[0] - 0x30) * 10) + (buffer[1] - 0x30);
       Serial.println(change);
     }
   }
+}
+
+void rollDie(uint8_t d1, uint8_t d2) {
+  for (int i = 10; i <= 40; i += 10) {
+    for(int j = 1; j < 10; j++) {
+      tube1.setTube(j);
+      delay(i);
+      tube2.setTube(9 - j);
+      delay(i);
+    }
+    for(int j = 1; j < 10; j++) {
+      tube1.setTube(9 - j);
+      delay(i);
+      tube2.setTube(j);
+      delay(i);
+    }
+  }
+
+  tube1.setTube(d1);
+  tube2.setTube(d2);
+  delay(400);
+  tube1.setTube(10);
+  tube2.setTube(10);
+  delay(400);
+  tube1.setTube(d1);
+  tube2.setTube(d2);
+  delay(400);
+  tube1.setTube(10);
+  tube2.setTube(10);
+  delay(400);
+  tube1.setTube(d1);
+  tube2.setTube(d2);
+  
 }
