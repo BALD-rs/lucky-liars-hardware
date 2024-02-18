@@ -56,10 +56,19 @@ void setup(void) {
   tft.fillScreen(WHITE);
   tft.setTextColor(WHITE, BLACK);
   sineWave();
+
+  pinMode(0, OUTPUT); //a
+  pinMode(2, OUTPUT); //b
+  pinMode(3, OUTPUT); //c
+  pinMode(1, OUTPUT); //d
+  digitalWrite(0, HIGH);
+  digitalWrite(2, LOW);
+  digitalWrite(3, LOW);
+  digitalWrite(1, LOW);
 }
 
 void loop() {
-  toggleHigh();
+  // toggleHigh();
 }
 
 void initArray() {
