@@ -18,6 +18,6 @@ After the user releases the button, a D20 is rolled and the result is displayed 
 animation. This value is similar to a "perception check," and the result impacts the quality of the polygraph shown. A higher number rolled means a clearer, higher quality polygraph is shown on the display, and can be used to determine the true killer.
 
 ## Layout
-![Overall Layout](/img/IMG_5011.jpg)
+![Overall Layout](/img/IMG_5011.JPG)
 ![Front View](/img/IMG_5012.JPG)
-![Nixie](/img/IMG_5013.jpg)
+![Nixie](/img/IMG_5013.JPG)
